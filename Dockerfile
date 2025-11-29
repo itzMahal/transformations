@@ -1,10 +1,10 @@
 # Build stage
-FROM node:18-alpine AS builder   # use a lightweight Node image
+FROM node:18-alpine AS builder
 WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 COPY . .
-RUN yarn build   # produce production build in e.g. /app/build or similar
+RUN yarn build
 
 # Production stage
 FROM nginx:alpine
