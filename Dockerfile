@@ -1,12 +1,11 @@
-FROM nginx
-ADD . /root
-RUN apt update &&\
-        apt -y install git curl gnupg2 &&\
-        curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - &&\
-        echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list &&\
-        apt update && apt -y install yarn &&\
-        cd /root/transformations/ &&\
-        yarn install &&\
-        yarn build &&\
-	rm -r /usr/share/nginx/html/ &&\
-	cp -r /root/transformations/build /usr/share/nginx/html
+# Build stage
+FROM node:18-alpine AS builder   # use a lightweight Node image
+WORKDIR /app
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
+COPY . .
+RUN yarn build   # produce production build in e.g. /app/build or similar
+
+# Production stage
+FROM nginx:alpine
+COPY --from=builder /app/build /usr/share/nginx/html
